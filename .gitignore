@@ -1,0 +1,9 @@
+﻿frames/
+frames_wave/
+frames_final/*
+!frames_final/f_0001.png
+*.blend1
+cube_turntable.*
+landing_standalone.html
+preview*.png
+test_montage.png
