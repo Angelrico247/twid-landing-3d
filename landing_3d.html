@@ -424,7 +424,7 @@ function init3D() {
   camera.lookAt(0, 0, 0);
 
   // luces
-  scene.add(new THREE.HemisphereLight(0xa08aff, 0x2a18c0, 1.3));
+  scene.add(new THREE.HemisphereLight(0xd8d2ff, 0x1a1240, 1.3));
   const key = new THREE.DirectionalLight(0xe6d6ff, 2.8); key.position.set(-3, 5, 4); scene.add(key);
   const rim = new THREE.DirectionalLight(0x00a8ff, 2.4); rim.position.set(4, 1, -2); scene.add(rim);
   const fill = new THREE.DirectionalLight(0x7a5cff, .5); fill.position.set(2, -3, 3); scene.add(fill);
@@ -473,11 +473,22 @@ function init3D() {
   const mesh = new THREE.InstancedMesh(geo, mat, M);
   mesh.instanceMatrix.setUsage(THREE.DynamicDrawUsage);
   mesh.frustumCulled = false;
-  const c0 = new THREE.Color('#2512e8'), c1 = new THREE.Color('#7a1cff'), c2 = new THREE.Color('#9c1fff'), cB = new THREE.Color('#0030ff'), tmp = new THREE.Color();
+  // paleta TWID: azul electrico (dominante) -> morado, mezclada con negros
+  const GRAD = ['#1f4dff', '#2563ff', '#2563ff', '#8b3dff', '#8b3dff'].map(h => new THREE.Color(h));
+  const BLACK = new THREE.Color('#050508'), tmp = new THREE.Color();
+  const gradAt = (t, out) => {
+    t = clamp(t, 0, 1) * (GRAD.length - 1);
+    const k = Math.min(Math.floor(t), GRAD.length - 2);
+    return out.copy(GRAD[k]).lerp(GRAD[k + 1], t - k);
+  };
   for (let i = 0; i < M; i++) {
+    // gradiente en diagonal (abajo-izq azul, arriba-der rosita); particulas al azar
+    const t = i < M0 ? .5 + .34 * (Ux[i] + Uy[i] + Uz[i]) + (rand() - .5) * .2 : rand();
+    gradAt(t, tmp);
+    const outer = i < M0 ? OUT[i] : 1;
     const r = rand();
-    if (r < .5) tmp.copy(c0).lerp(c1, r * 2); else tmp.copy(c1).lerp(c2, (r - .5) * 2);
-    if (rand() < .26) tmp.copy(cB).offsetHSL(0, 0, (rand() - .5) * .08);   // toques de azul electrico
+    if (r < .36 + .2 * (1 - outer)) tmp.copy(BLACK).offsetHSL(0, 0, rand() * .025);   // negros puros (mas hacia adentro)
+    else if (r < .62) tmp.lerp(BLACK, .45 + rand() * .35);                              // tonos ahumados de la paleta
     mesh.setColorAt(i, tmp);
   }
   mesh.instanceColor.needsUpdate = true;
